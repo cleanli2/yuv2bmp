@@ -4,6 +4,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include "yuv2rgb.h"
 
 unsigned char bmphd[] = {
   0x42, 0x4d, 0x36, 0x10, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x00,
@@ -12,45 +13,6 @@ unsigned char bmphd[] = {
   0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
-struct dataof_yuv2bmp {
-	uint8_t y1;
-	uint8_t y2;
-	uint8_t u;
-	uint8_t v;
-	uint8_t b1;
-	uint8_t g1;
-	uint8_t r1;
-	uint8_t b2;
-	uint8_t g2;
-	uint8_t r2;
-};
-#define CLAMP(L, D, H) ((D<L)?L:((D<H)?D:H))
-void yuv2bmp(struct dataof_yuv2bmp* dy)
-{
-	int32_t y1, y2, u, v;
-	int32_t r1, r2, b1, b2, g1, g2;
-	y1=dy->y1;
-	u=dy->u;
-	y2=dy->y2;
-	v=dy->v;
-
-    //compute
-    b1=y1+1770*(u-128)/1000;
-    g1=y1-(343*(u-128)+714*(v-128))/1000;
-    r1=y1+1403*(v-128)/1000;
-    b2=y2+1770*(u-128)/1000;
-    g2=y2-(343*(u-128)+714*(v-128))/1000;
-    r2=y2+1403*(v-128)/1000;
-
-    //output
-    dy->b1=CLAMP(0, b1, 255);
-    dy->b2=CLAMP(0, b2, 255);
-    dy->g1=CLAMP(0, g1, 255);
-    dy->g2=CLAMP(0, g2, 255);
-    dy->r1=CLAMP(0, r1, 255);
-    dy->r2=CLAMP(0, r2, 255);
-}
-
 int main()
 {
     uint8_t yuv2px[4], bmp2px[6], head[54];
