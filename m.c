@@ -12,9 +12,49 @@ unsigned char bmphd[] = {
   0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
+struct dataof_yuv2bmp {
+	uint8_t y1;
+	uint8_t y2;
+	uint8_t u;
+	uint8_t v;
+	uint8_t b1;
+	uint8_t g1;
+	uint8_t r1;
+	uint8_t b2;
+	uint8_t g2;
+	uint8_t r2;
+};
+#define CLAMP(L, D, H) ((D<L)?L:((D<H)?D:H))
+void yuv2bmp(struct dataof_yuv2bmp* dy)
+{
+	int32_t y1, y2, u, v;
+	int32_t r1, r2, b1, b2, g1, g2;
+	y1=dy->y1;
+	u=dy->u;
+	y2=dy->y2;
+	v=dy->v;
+
+    //compute
+    b1=y1+1770*(u-128)/1000;
+    g1=y1-(343*(u-128)+714*(v-128))/1000;
+    r1=y1+1403*(v-128)/1000;
+    b2=y2+1770*(u-128)/1000;
+    g2=y2-(343*(u-128)+714*(v-128))/1000;
+    r2=y2+1403*(v-128)/1000;
+
+    //output
+    dy->b1=CLAMP(0, b1, 255);
+    dy->b2=CLAMP(0, b2, 255);
+    dy->g1=CLAMP(0, g1, 255);
+    dy->g2=CLAMP(0, g2, 255);
+    dy->r1=CLAMP(0, r1, 255);
+    dy->r2=CLAMP(0, r2, 255);
+}
+
 int main()
 {
     uint8_t yuv2px[4], bmp2px[6], head[54];
+    struct dataof_yuv2bmp dyb;
     const char *filename = "test/testfile";
     FILE *fps = fopen("s.bin", "rb");
     if (!fps){
@@ -31,10 +71,14 @@ int main()
 
     fwrite(bmphd, 54, 1, fpd);
     for(int i=0;i<640*480/2;i++){
-        int32_t y1, y2, u, v;
-        int32_t r1, r2, b1, b2, g1, g2;
         fread(yuv2px, 4, 1, fps);
-
+        dyb.y1=yuv2px[0];
+        dyb.u=yuv2px[1];
+        dyb.y2=yuv2px[2];
+        dyb.v=yuv2px[3];
+        yuv2bmp(&dyb);
+#if 0
+        int32_t r1, r2, b1, b2, g1, g2;
         printf("i=%d\n", i);
         printf("%02x %02x %02x %02x\n", yuv2px[0], yuv2px[1], yuv2px[2], yuv2px[3]);
         y1=yuv2px[0];
@@ -57,7 +101,7 @@ int main()
         g2=0x00;
         b2=0xff;
         */
-#if 1
+#if 0
         if(y1<16)y1=16;
         if(y2<16)y2=16;
         if(y1>235)y1=235;
@@ -108,6 +152,13 @@ int main()
         bmp2px[4]=g2;
         bmp2px[5]=r2;
         printf("%02x %02x %02x %02x %02x %02x\n", bmp2px[0], bmp2px[1], bmp2px[2], bmp2px[3], bmp2px[4], bmp2px[5]);
+#endif
+        bmp2px[0]=dyb.b1;
+        bmp2px[1]=dyb.g1;
+        bmp2px[2]=dyb.r1;
+        bmp2px[3]=dyb.b2;
+        bmp2px[4]=dyb.g2;
+        bmp2px[5]=dyb.r2;
         fwrite(bmp2px, 6, 1, fpd);
     }
     //fwrite("hello world", 10, 1, fps);
