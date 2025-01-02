@@ -38,11 +38,12 @@ int main()
         dyb.u=yuv2px[1];
         dyb.y2=yuv2px[2];
         dyb.v=yuv2px[3];
-        yuv2bmp(&dyb);
+        printf("%02x %02x %02x %02x\n", yuv2px[0], yuv2px[1], yuv2px[2], yuv2px[3]);
+        yuv2bmp_tab(&dyb);
+        //yuv2bmp(&dyb);
 #if 0
         int32_t r1, r2, b1, b2, g1, g2;
         printf("i=%d\n", i);
-        printf("%02x %02x %02x %02x\n", yuv2px[0], yuv2px[1], yuv2px[2], yuv2px[3]);
         y1=yuv2px[0];
         u=yuv2px[1];
         y2=yuv2px[2];
@@ -113,8 +114,8 @@ int main()
         bmp2px[3]=b2;
         bmp2px[4]=g2;
         bmp2px[5]=r2;
-        printf("%02x %02x %02x %02x %02x %02x\n", bmp2px[0], bmp2px[1], bmp2px[2], bmp2px[3], bmp2px[4], bmp2px[5]);
 #endif
+        printf("%02x %02x %02x %02x %02x %02x\n", bmp2px[0], bmp2px[1], bmp2px[2], bmp2px[3], bmp2px[4], bmp2px[5]);
         bmp2px[0]=dyb.b1;
         bmp2px[1]=dyb.g1;
         bmp2px[2]=dyb.r1;
